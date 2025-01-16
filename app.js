@@ -25,14 +25,14 @@ document.getElementById("kudo-form").addEventListener("submit", async function (
     alert("Error adding kudo. Please try again.");
   } else {
     console.log("Kudo added:", data);
-    displayKudos(); // Refresh the kudo list
+    displayKudos(); // Refresh the kudo list and graph
   }
 
   // Clear the form
   document.getElementById("kudo-form").reset();
 });
 
-// Display kudos in the list
+// Display kudos in the list and update the graph
 async function displayKudos() {
   const { data: kudos, error } = await supabase
     .from("kudos")
@@ -53,7 +53,105 @@ async function displayKudos() {
     li.textContent = `${kudo.created_at}: ${kudo.message} - Saaja: ${kudo.receiver}`;
     kudoList.appendChild(li);
   });
+
+  // Update the graph with the latest kudos data
+  buildGraph(kudos);
 }
 
-// Initialize the kudo list
+// Build the network graph
+function buildGraph(kudos) {
+  const nodes = [];
+  const links = [];
+
+  // Create nodes and links
+  kudos.forEach((kudo) => {
+    if (!nodes.some((node) => node.id === kudo.receiver)) {
+      nodes.push({ id: kudo.receiver });
+    }
+    if (!nodes.some((node) => node.id === kudo.sender)) {
+      nodes.push({ id: kudo.sender });
+    }
+    links.push({ source: kudo.sender, target: kudo.receiver });
+  });
+
+  const width = 800;
+  const height = 600;
+
+  // Clear the previous graph
+  document.getElementById("network-graph").innerHTML = "";
+
+  const svg = d3
+    .select("#network-graph")
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+  const simulation = d3
+    .forceSimulation(nodes)
+    .force("link", d3.forceLink(links).id((d) => d.id).distance(100))
+    .force("charge", d3.forceManyBody().strength(-300))
+    .force("center", d3.forceCenter(width / 2, height / 2));
+
+  const link = svg
+    .append("g")
+    .selectAll("line")
+    .data(links)
+    .enter()
+    .append("line")
+    .attr("stroke-width", 2)
+    .attr("stroke", "#999");
+
+  const node = svg
+    .append("g")
+    .selectAll("circle")
+    .data(nodes)
+    .enter()
+    .append("circle")
+    .attr("r", 10)
+    .attr("fill", "#69b3a2")
+    .call(
+      d3
+        .drag()
+        .on("start", (event, d) => {
+          if (!event.active) simulation.alphaTarget(0.3).restart();
+          d.fx = d.x;
+          d.fy = d.y;
+        })
+        .on("drag", (event, d) => {
+          d.fx = event.x;
+          d.fy = event.y;
+        })
+        .on("end", (event, d) => {
+          if (!event.active) simulation.alphaTarget(0);
+          d.fx = null;
+          d.fy = null;
+        })
+    );
+
+  const text = svg
+    .append("g")
+    .selectAll("text")
+    .data(nodes)
+    .enter()
+    .append("text")
+    .attr("x", 12)
+    .attr("y", 3)
+    .text((d) => d.id)
+    .style("font-size", "12px")
+    .style("fill", "#555");
+
+  simulation.on("tick", () => {
+    link
+      .attr("x1", (d) => d.source.x)
+      .attr("y1", (d) => d.source.y)
+      .attr("x2", (d) => d.target.x)
+      .attr("y2", (d) => d.target.y);
+
+    node.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+
+    text.attr("x", (d) => d.x + 12).attr("y", (d) => d.y + 3);
+  });
+}
+
+// Initialize the kudo list and graph
 displayKudos();
