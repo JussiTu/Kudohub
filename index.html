@@ -5,15 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KudoHub</title>
   <link rel="stylesheet" href="style.css">
-
-  <!-- Load external libraries -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
   <header>
     <h1>KudoHub</h1>
     <nav>
+      <a href="#auth">Login/Signup</a>
       <a href="#give-kudo">Anna Kudo</a>
       <a href="#kudo-list">Näytä Kudot</a>
       <a href="#network">Verkosto</a>
@@ -21,7 +19,17 @@
   </header>
 
   <main>
-    <section id="give-kudo">
+    <section id="auth">
+      <h2>Login or Signup</h2>
+      <form id="auth-form">
+        <input type="email" id="email" placeholder="Email" required />
+        <input type="password" id="password" placeholder="Password" required />
+        <button type="submit">Login/Signup</button>
+      </form>
+      <button id="logout-button" style="display:none;">Logout</button>
+    </section>
+
+    <section id="give-kudo" style="display:none;">
       <h2>Anna Kudo</h2>
       <form id="kudo-form">
         <label for="receiver">Kenelle:</label>
@@ -34,20 +42,17 @@
       </form>
     </section>
 
-    <section id="kudo-list">
+    <section id="kudo-list" style="display:none;">
       <h2>Kudot</h2>
-      <ul id="kudos">
-        <!-- Täytetään JavaScriptillä -->
-      </ul>
+      <ul id="kudos"></ul>
     </section>
 
-    <section id="network">
+    <section id="network" style="display:none;">
       <h2>Verkosto</h2>
       <div id="network-graph" style="width: 800px; height: 600px;"></div>
     </section>
   </main>
 
-  <!-- Load your custom JavaScript after the DOM -->
   <script src="app.js"></script>
 </body>
 </html>
