@@ -74,6 +74,17 @@ function buildGraph(kudos) {
     links.push({ source: kudo.sender, target: kudo.receiver });
   });
 
+  console.log("Nodes:", nodes); // Debugging nodes
+  console.log("Links:", links); // Debugging links
+
+  // Display a placeholder if the graph has insufficient data
+  if (nodes.length === 0 || links.length === 0) {
+    console.warn("Insufficient data for the graph. Waiting for more kudos.");
+    document.getElementById("network-graph").innerHTML =
+      "<p>No network data to display. Add more kudos!</p>";
+    return;
+  }
+
   const width = 800;
   const height = 600;
 
