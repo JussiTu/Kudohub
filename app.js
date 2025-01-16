@@ -35,22 +35,30 @@ document.getElementById("kudo-form").addEventListener("submit", async function (
 
 
 // Display kudos in the list
-function displayKudos() {
-  const kudos = JSON.parse(localStorage.getItem("kudos")) || [];
-  const kudoList = document.getElementById("kudos");
-  kudoList.innerHTML = "";
+async function displayKudos() {
+  const { data: kudos, error } = await supabase
+    .from("kudos")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-  if (kudos.length === 0) {
-    kudoList.innerHTML = "<li>Ei kudos vielä!</li>";
+  if (error) {
+    console.error("Error fetching kudos:", error);
     return;
   }
 
+  const kudoList = document.getElementById("kudos");
+  kudoList.innerHTML = "";
+
   kudos.forEach((kudo) => {
     const li = document.createElement("li");
-    li.textContent = `${kudo.date}: ${kudo.message} - Saaja: ${kudo.receiver}`;
+    li.textContent = `${kudo.created_at}: ${kudo.message} - Saaja: ${kudo.receiver}`;
     kudoList.appendChild(li);
   });
 }
+
+// Initialize
+displayKudos();
+
 
 // Build the network graph
 function buildGraph() {
