@@ -1,1 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KudoHub</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>KudoHub</h1>
+    <nav>
+      <a href="#give-kudo">Anna Kudo</a>
+      <a href="#kudo-list">Näytä Kudot</a>
+      <a href="#network">Verkosto</a>
+    </nav>
+  </header>
 
+  <main>
+    <section id="give-kudo">
+      <h2>Anna Kudo</h2>
+      <form id="kudo-form">
+        <label for="receiver">Kenelle:</label>
+        <input type="text" id="receiver" name="receiver" required>
+        
+        <label for="message">Viesti:</label>
+        <textarea id="message" name="message" required></textarea>
+        
+        <button type="submit">Lähetä</button>
+      </form>
+    </section>
+
+    <section id="kudo-list">
+      <h2>Kudot</h2>
+      <ul id="kudos">
+        <!-- Täytetään JavaScriptillä -->
+      </ul>
+    </section>
+
+    <section id="network">
+      <h2>Verkosto</h2>
+      <div id="network-graph">
+        <!-- D3.js-renderointi -->
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
