@@ -1,30 +1,38 @@
+const SUPABASE_URL = "https://bxqlpgmqchalrfmywofc.supabase.com"; // Replace with your Supabase URL
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4cWxwZ21xY2hhbHJmbXl3b2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcwMzcwMjIsImV4cCI6MjA1MjYxMzAyMn0.E6kWfJqepTSrsleKr5RSttS2OCFHRaT16JqC4HMEA38"; // Replace with your Supabase Anon Key
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 // Handle form submission
-document.getElementById("kudo-form").addEventListener("submit", function (e) {
+
+
+  
+document.getElementById("kudo-form").addEventListener("submit", async function (e) {
   e.preventDefault();
 
   const receiver = document.getElementById("receiver").value.trim();
   const message = document.getElementById("message").value.trim();
-  const SUPABASE_URL = "https://bxqlpgmqchalrfmywofc.supabase.com"; // Replace with your Supabase URL
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4cWxwZ21xY2hhbHJmbXl3b2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcwMzcwMjIsImV4cCI6MjA1MjYxMzAyMn0.E6kWfJqepTSrsleKr5RSttS2OCFHRaT16JqC4HMEA38"; // Replace with your Supabase Anon Key
-
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 
   if (!receiver || !message) {
-    alert("Täytä kaikki kentät!"); // Alert for empty fields
+    alert("Täytä kaikki kentät!");
     return;
   }
 
-  let kudos = JSON.parse(localStorage.getItem("kudos")) || [];
-  kudos.push({ receiver, message, date: new Date().toLocaleString() });
-  localStorage.setItem("kudos", JSON.stringify(kudos));
+  // Insert data into Supabase
+  const { data, error } = await supabase
+    .from("kudos")
+    .insert([{ sender: "You", receiver, message }]);
 
-  displayKudos();
-  buildGraph();
+  if (error) {
+    console.error("Error inserting kudo:", error);
+  } else {
+    console.log("Kudo added:", data);
+    displayKudos(); // Refresh the kudo list
+  }
 
   // Clear the form
   document.getElementById("kudo-form").reset();
 });
+
 
 // Display kudos in the list
 function displayKudos() {
