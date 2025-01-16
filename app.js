@@ -3,6 +3,64 @@ const SUPABASE_URL = "https://bxqlpgmqchalrfmywofc.supabase.co"; // Replace with
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4cWxwZ21xY2hhbHJmbXl3b2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcwMzcwMjIsImV4cCI6MjA1MjYxMzAyMn0.E6kWfJqepTSrsleKr5RSttS2OCFHRaT16JqC4HMEA38"; // Replace with your Supabase Anon Key
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Handle login/signup
+document.getElementById("auth-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if (!email || !password) {
+    alert("Please fill out all fields.");
+    return;
+  }
+
+  // Log in or sign up the user
+  const { user, error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    // If login fails, try signing up
+    const { error: signupError } = await supabase.auth.signUp({ email, password });
+    if (signupError) {
+      console.error("Error during signup:", signupError);
+      alert("Error signing up. Please try again.");
+    } else {
+      alert("Signup successful! You can now log in.");
+    }
+  } else {
+    console.log("User logged in:", user);
+    toggleAuthState(true);
+    displayKudos(); // Load kudos after login
+  }
+});
+
+// Handle logout
+document.getElementById("logout-button").addEventListener("click", async () => {
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    console.error("Error logging out:", error);
+  } else {
+    toggleAuthState(false);
+  }
+});
+
+// Toggle UI based on auth state
+function toggleAuthState(isLoggedIn) {
+  document.getElementById("auth").style.display = isLoggedIn ? "none" : "block";
+  document.getElementById("give-kudo").style.display = isLoggedIn ? "block" : "none";
+  document.getElementById("kudo-list").style.display = isLoggedIn ? "block" : "none";
+  document.getElementById("network").style.display = isLoggedIn ? "block" : "none";
+  document.getElementById("logout-button").style.display = isLoggedIn ? "inline-block" : "none";
+}
+
+// Check for active session on page load
+(async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  toggleAuthState(!!session);
+  if (session) displayKudos();
+})();
+
+
 // Handle form submission
 document.getElementById("kudo-form").addEventListener("submit", async function (e) {
   e.preventDefault();
