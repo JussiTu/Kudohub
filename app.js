@@ -16,7 +16,7 @@ document.getElementById("kudo-form").addEventListener("submit", async function (
   }
 
   // Insert data into Supabase
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("kudos")
     .insert([{ sender: "You", receiver, message }]);
 
@@ -24,15 +24,14 @@ document.getElementById("kudo-form").addEventListener("submit", async function (
     console.error("Error inserting kudo:", error);
     alert("Error adding kudo. Please try again.");
   } else {
-    console.log("Kudo added:", data);
-    displayKudos(); // Refresh the kudo list and graph
+    console.log("Kudo added successfully!");
   }
 
   // Clear the form
   document.getElementById("kudo-form").reset();
 });
 
-// Display kudos in the list and update the graph
+// Display kudos in the list
 async function displayKudos() {
   const { data: kudos, error } = await supabase
     .from("kudos")
@@ -41,7 +40,6 @@ async function displayKudos() {
 
   if (error) {
     console.error("Error fetching kudos:", error);
-    alert("Error fetching kudos. Please try again.");
     return;
   }
 
@@ -54,7 +52,7 @@ async function displayKudos() {
     kudoList.appendChild(li);
   });
 
-  // Update the graph with the latest kudos data
+  // Update the graph with the latest kudos
   buildGraph(kudos);
 }
 
@@ -74,12 +72,11 @@ function buildGraph(kudos) {
     links.push({ source: kudo.sender, target: kudo.receiver });
   });
 
-  console.log("Nodes:", nodes); // Debugging nodes
-  console.log("Links:", links); // Debugging links
+  console.log("Nodes:", nodes);
+  console.log("Links:", links);
 
   // Display a placeholder if the graph has insufficient data
   if (nodes.length === 0 || links.length === 0) {
-    console.warn("Insufficient data for the graph. Waiting for more kudos.");
     document.getElementById("network-graph").innerHTML =
       "<p>No network data to display. Add more kudos!</p>";
     return;
@@ -163,6 +160,15 @@ function buildGraph(kudos) {
     text.attr("x", (d) => d.x + 12).attr("y", (d) => d.y + 3);
   });
 }
+
+// Listen for real-time changes in the `kudos` table
+supabase
+  .from("kudos")
+  .on("INSERT", (payload) => {
+    console.log("New kudo added:", payload.new);
+    displayKudos(); // Refresh the list and graph when a new kudo is added
+  })
+  .subscribe();
 
 // Initialize the kudo list and graph
 displayKudos();
