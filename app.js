@@ -119,7 +119,7 @@ async function displayKudos() {
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("Error fetching kudos:", error);
+    console.error("Error fetching kudos:", error.message);
     return;
   }
 
@@ -128,9 +128,11 @@ async function displayKudos() {
 
   kudos.forEach((kudo) => {
     const li = document.createElement("li");
-    li.textContent = `${kudo.created_at}: ${kudo.message} - Saaja: ${kudo.receiver}`;
+    li.textContent = `${kudo.created_at}: ${kudo.message} - Sender: ${kudo.sender}, Receiver: ${kudo.receiver}`;
     kudoList.appendChild(li);
   });
+}
+
 
   // Update the graph with the latest kudos
   buildGraph(kudos);
