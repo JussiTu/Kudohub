@@ -89,22 +89,24 @@ document.getElementById("kudo-form").addEventListener("submit", async function (
     return;
   }
 
-  // Get the current user
+  // Get the authenticated user
   const {
     data: { user },
     error: userError,
   } = await supabase.auth.getUser();
 
-  if (userError) {
-    console.error("Error fetching user:", userError.message);
+  if (userError || !user) {
+    console.error("Error fetching user:", userError?.message || "No user logged in.");
     alert("Error submitting kudo: User not authenticated.");
     return;
   }
 
+  console.log("Authenticated user:", user); // Debug log
+
   const sender = user.email; // Use the authenticated user's email as the sender
 
   // Insert the kudo into the database
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("kudos")
     .insert([{ sender, receiver, message }]);
 
@@ -112,8 +114,9 @@ document.getElementById("kudo-form").addEventListener("submit", async function (
     console.error("Error inserting kudo:", error.message);
     alert(`Failed to send kudo: ${error.message}`);
   } else {
-    console.log("Kudo added successfully!");
+    console.log("Kudo added successfully!", data);
     alert("Kudo sent!");
+    displayKudos(); // Refresh the UI after a successful insert
   }
 
   // Clear the form
@@ -132,6 +135,8 @@ async function displayKudos() {
     return;
   }
 
+  console.log("Fetched kudos:", kudos); // Debug log
+
   const kudoList = document.getElementById("kudos");
   kudoList.innerHTML = "";
 
@@ -140,9 +145,6 @@ async function displayKudos() {
     li.textContent = `${kudo.created_at}: ${kudo.message} - Sender: ${kudo.sender}, Receiver: ${kudo.receiver}`;
     kudoList.appendChild(li);
   });
-
-  // Update the graph with the latest kudos
-  buildGraph(kudos);
 }
 
 // Build the network graph
