@@ -15,28 +15,27 @@ document.getElementById("auth-form").addEventListener("submit", async (e) => {
     return;
   }
 
-  // Attempt to log in
+  // Log in or sign up the user
   const { user, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    console.log("Login failed. Attempting to create a new user...");
-    
-    // Attempt to create a new user (sign-up)
+    console.log("Login failed. Attempting to create a new account...");
+
+    // Attempt sign-up if login fails
     const { error: signupError } = await supabase.auth.signUp({ email, password });
 
     if (signupError) {
       console.error("Sign-up failed:", signupError.message);
       alert(`Sign-up failed: ${signupError.message}`);
     } else {
-      alert("Account created successfully! Please log in.");
+      alert("Signup successful! Please confirm your email before logging in.");
     }
   } else {
-    console.log("User logged in:", user);
+    console.log("User logged in successfully:", user);
     toggleAuthState(true);
-    displayKudos(); // Load kudos after login
+    displayKudos(); // Load kudos if login succeeds
   }
 });
-
 
 // Handle logout
 document.getElementById("logout-button").addEventListener("click", async () => {
@@ -62,9 +61,20 @@ function toggleAuthState(isLoggedIn) {
 
 // Check for active session on page load
 (async () => {
-  const { data: { session } } = await supabase.auth.getSession();
-  toggleAuthState(!!session);
-  if (session) displayKudos();
+  const { data: { session }, error } = await supabase.auth.getSession();
+
+  if (error) {
+    console.error("Error fetching session:", error.message);
+  }
+
+  if (session) {
+    console.log("User session active:", session);
+    toggleAuthState(true);
+    displayKudos(); // Load kudos
+  } else {
+    console.log("No active session. User needs to log in.");
+    toggleAuthState(false);
+  }
 })();
 
 // Handle form submission
@@ -110,7 +120,6 @@ document.getElementById("kudo-form").addEventListener("submit", async function (
   document.getElementById("kudo-form").reset();
 });
 
-
 // Display kudos in the list
 async function displayKudos() {
   const { data: kudos, error } = await supabase
@@ -131,8 +140,6 @@ async function displayKudos() {
     li.textContent = `${kudo.created_at}: ${kudo.message} - Sender: ${kudo.sender}, Receiver: ${kudo.receiver}`;
     kudoList.appendChild(li);
   });
-}
-
 
   // Update the graph with the latest kudos
   buildGraph(kudos);
