@@ -105,7 +105,7 @@ document.getElementById("kudo-form").addEventListener("submit", async function (
 
   const sender = user.email; // Use the authenticated user's email as the sender
 
-  // Debug authenticated user
+// Debug authenticated user
 console.log("Fetching authenticated user...");
 const { data: { user }, error: userError } = await supabase.auth.getUser();
 if (userError || !user) {
@@ -118,6 +118,7 @@ console.log("Authenticated user:", user);
 // Debug insert payload
 const sender = user.email;
 console.log("Inserting kudo with details:", { sender, receiver, message });
+
 
   // Insert the kudo into the database
   const { data, error } = await supabase
