@@ -79,22 +79,37 @@ document.getElementById("kudo-form").addEventListener("submit", async function (
     return;
   }
 
-  // Insert data into Supabase
-  const sanitizedMessage = message.replace(/<[^>]+>/g, ''); // Sanitize message input
+  // Get the current user
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    console.error("Error fetching user:", userError.message);
+    alert("Error submitting kudo: User not authenticated.");
+    return;
+  }
+
+  const sender = user.email; // Use the authenticated user's email as the sender
+
+  // Insert the kudo into the database
   const { error } = await supabase
     .from("kudos")
-    .insert([{ sender: "You", receiver, message: sanitizedMessage }]);
+    .insert([{ sender, receiver, message }]);
 
   if (error) {
-    console.error("Error inserting kudo:", error);
+    console.error("Error inserting kudo:", error.message);
     alert(`Failed to send kudo: ${error.message}`);
   } else {
     console.log("Kudo added successfully!");
+    alert("Kudo sent!");
   }
 
   // Clear the form
   document.getElementById("kudo-form").reset();
 });
+
 
 // Display kudos in the list
 async function displayKudos() {
