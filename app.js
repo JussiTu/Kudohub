@@ -15,17 +15,20 @@ document.getElementById("auth-form").addEventListener("submit", async (e) => {
     return;
   }
 
-  // Log in or sign up the user
+  // Attempt to log in
   const { user, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    // If login fails, try signing up
+    console.log("Login failed. Attempting to create a new user...");
+    
+    // Attempt to create a new user (sign-up)
     const { error: signupError } = await supabase.auth.signUp({ email, password });
+
     if (signupError) {
-      console.error("Error during signup:", signupError);
-      alert("Error signing up. Please try again.");
+      console.error("Sign-up failed:", signupError.message);
+      alert(`Sign-up failed: ${signupError.message}`);
     } else {
-      alert("Signup successful! You can now log in.");
+      alert("Account created successfully! Please log in.");
     }
   } else {
     console.log("User logged in:", user);
@@ -33,6 +36,7 @@ document.getElementById("auth-form").addEventListener("submit", async (e) => {
     displayKudos(); // Load kudos after login
   }
 });
+
 
 // Handle logout
 document.getElementById("logout-button").addEventListener("click", async () => {
