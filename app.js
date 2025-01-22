@@ -85,81 +85,76 @@ document.getElementById("kudo-form").addEventListener("submit", async function (
   const message = document.getElementById("message").value.trim();
 
   if (!receiver || !message) {
-    alert("Täytä kaikki kentät!");
+    alert("Täytä kaikki kentät!"); // Ensure both fields are filled
     return;
   }
 
-  // Get the authenticated user
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
+  try {
+    // Get the authenticated user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-  if (userError || !user) {
-    console.error("Error fetching user:", userError?.message || "No user logged in.");
-    alert("Error submitting kudo: User not authenticated.");
-    return;
+    if (userError || !user) {
+      console.error("Error fetching user:", userError?.message || "No user logged in.");
+      alert("Error submitting kudo: User not authenticated.");
+      return;
+    }
+
+    console.log("Authenticated user:", user); // Debug log
+
+    const sender = user.email; // Use the authenticated user's email as the sender
+
+    console.log("Inserting kudo with details:", { sender, receiver, message }); // Debug log
+
+    // Insert the kudo into the database
+    const { data, error } = await supabase
+      .from("kudos")
+      .insert([{ sender, receiver, message }]);
+
+    if (error) {
+      console.error("Error inserting kudo:", error.message);
+      alert(`Failed to send kudo: ${error.message}`);
+    } else {
+      console.log("Kudo added successfully!", data);
+      alert("Kudo sent!");
+      displayKudos(); // Refresh the UI after a successful insert
+    }
+
+    // Clear the form
+    document.getElementById("kudo-form").reset();
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    alert("An unexpected error occurred. Please try again.");
   }
-
-  console.log("Authenticated user:", user); // Debug log
-
-  const sender = user.email; // Use the authenticated user's email as the sender
-
-// Debug authenticated user
-console.log("Fetching authenticated user...");
-const { data: { user }, error: userError } = await supabase.auth.getUser();
-if (userError || !user) {
-  console.error("Error fetching user:", userError?.message || "No user logged in.");
-  alert("Error submitting kudo: User not authenticated.");
-  return;
-}
-console.log("Authenticated user:", user);
-
-// Debug insert payload
-const sender = user.email;
-console.log("Inserting kudo with details:", { sender, receiver, message });
-
-
-  // Insert the kudo into the database
-  const { data, error } = await supabase
-    .from("kudos")
-    .insert([{ sender, receiver, message }]);
-
-  if (error) {
-    console.error("Error inserting kudo:", error.message);
-    alert(`Failed to send kudo: ${error.message}`);
-  } else {
-    console.log("Kudo added successfully!", data);
-    alert("Kudo sent!");
-    displayKudos(); // Refresh the UI after a successful insert
-  }
-
-  // Clear the form
-  document.getElementById("kudo-form").reset();
 });
 
 // Display kudos in the list
 async function displayKudos() {
-  const { data: kudos, error } = await supabase
-    .from("kudos")
-    .select("*")
-    .order("created_at", { ascending: false });
+  try {
+    const { data: kudos, error } = await supabase
+      .from("kudos")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-  if (error) {
-    console.error("Error fetching kudos:", error.message);
-    return;
+    if (error) {
+      console.error("Error fetching kudos:", error.message);
+      alert("Failed to fetch kudos.");
+      return;
+    }
+
+    console.log("Fetched kudos:", kudos); // Debug log
+
+    const kudoList = document.getElementById("kudos");
+    kudoList.innerHTML = "";
+
+    kudos.forEach((kudo) => {
+      const li = document.createElement("li");
+      li.textContent = `${kudo.created_at}: ${kudo.message} - Sender: ${kudo.sender}, Receiver: ${kudo.receiver}`;
+      kudoList.appendChild(li);
+    });
+  } catch (err) {
+    console.error("Unexpected error while displaying kudos:", err);
+    alert("An unexpected error occurred while displaying kudos.");
   }
-
-  console.log("Fetched kudos:", kudos); // Debug log
-
-  const kudoList = document.getElementById("kudos");
-  kudoList.innerHTML = "";
-
-  kudos.forEach((kudo) => {
-    const li = document.createElement("li");
-    li.textContent = `${kudo.created_at}: ${kudo.message} - Sender: ${kudo.sender}, Receiver: ${kudo.receiver}`;
-    kudoList.appendChild(li);
-  });
 }
 
 // Build the network graph
