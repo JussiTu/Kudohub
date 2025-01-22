@@ -36,11 +36,14 @@ document.getElementById("auth-form").addEventListener("submit", async (e) => {
 
 // Handle logout
 document.getElementById("logout-button").addEventListener("click", async () => {
-  const { error } = await supabase.auth.signOut();
-  if (error) {
-    console.error("Error logging out:", error);
-  } else {
-    toggleAuthState(false);
+  if (confirm("Are you sure you want to logout?")) {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Error logging out:", error);
+    } else {
+      toggleAuthState(false);
+      alert("Logged out successfully!");
+    }
   }
 });
 
@@ -60,7 +63,6 @@ function toggleAuthState(isLoggedIn) {
   if (session) displayKudos();
 })();
 
-
 // Handle form submission
 document.getElementById("kudo-form").addEventListener("submit", async function (e) {
   e.preventDefault();
@@ -74,13 +76,14 @@ document.getElementById("kudo-form").addEventListener("submit", async function (
   }
 
   // Insert data into Supabase
+  const sanitizedMessage = message.replace(/<[^>]+>/g, ''); // Sanitize message input
   const { error } = await supabase
     .from("kudos")
-    .insert([{ sender: "You", receiver, message }]);
+    .insert([{ sender: "You", receiver, message: sanitizedMessage }]);
 
   if (error) {
     console.error("Error inserting kudo:", error);
-    alert("Error adding kudo. Please try again.");
+    alert(`Failed to send kudo: ${error.message}`);
   } else {
     console.log("Kudo added successfully!");
   }
